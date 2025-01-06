@@ -1,17 +1,17 @@
-import 'admin-lte/dist/css/adminlte.min.css';
 import React, { useCallback, useState } from "react";
 import ReactFlow, {
   addEdge,
   Background,
   Controls,
+  useNodesState,
+  useEdgesState,
+  Connection,
   Edge,
   Node,
-  NodeChange,
-  EdgeChange,
-  OnConnect,
 } from "react-flow-renderer";
 import { saveAs } from "file-saver";
 
+// Define initial nodes and edges
 const initialNodes: Node[] = [
   {
     id: "1",
@@ -24,52 +24,18 @@ const initialNodes: Node[] = [
 const initialEdges: Edge[] = [];
 
 const Flowchart: React.FC = () => {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      setNodes((nds) => {
-        return changes.reduce((acc, change) => {
-          if ('id' in change) {
-            const index = acc.findIndex((node) => node.id === change.id);
-            if (index >= 0) {
-              acc[index] = { ...acc[index], ...change };
-            } else {
-              acc.push(change as Node);
-            }
-          }
-          return acc;
-        }, [...nds]);
-      });
-    },
-    []
+  const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
+
+  // Handle new connections
+  const onConnect = useCallback(
+    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
+    [setEdges]
   );
 
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
-      setEdges((eds) => {
-        return changes.reduce((acc, change) => {
-          if ('id' in change) {
-            const index = acc.findIndex((edge) => edge.id === change.id);
-            if (index >= 0) {
-              acc[index] = { ...acc[index], ...change };
-            } else {
-              acc.push(change as Edge);
-            }
-          }
-          return acc;
-        }, [...eds]);
-      });
-    },
-    []
-  );
-
-  const onConnect: OnConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    []
-  );
-
+  // Export canvas as an image
   const exportToImage = useCallback(() => {
     const canvas = document.querySelector("canvas");
     if (canvas) {
@@ -79,15 +45,48 @@ const Flowchart: React.FC = () => {
     }
   }, []);
 
+  // Undo functionality
+  const undo = useCallback(() => {
+    if (history.length > 0) {
+      const lastState = history[history.length - 1];
+      setNodes(lastState.nodes);
+      setEdges(lastState.edges);
+      setHistory((hist) => hist.slice(0, -1));
+    }
+  }, [history]);
+
+  // Add nodes dynamically
+  const addNode = useCallback(() => {
+    const newNode: Node = {
+      id: (nodes.length + 1).toString(),
+      type: "default",
+      data: { label: `Node ${nodes.length + 1}` },
+      position: { x: 250, y: nodes.length * 100 },
+    };
+    setHistory((hist) => [...hist, { nodes, edges }]);
+    setNodes((nds) => [...nds, newNode]);
+  }, [nodes, edges, setNodes]);
+
   return (
     <div className="container-fluid" style={{ height: "100vh" }}>
       <div className="row">
         <div className="col-12">
-          <h1 className="text-center text-primary my-3">Simple Flowchart Designer</h1>
+          <h1 className="text-center text-primary my-3">Flowchart Diagram</h1>
         </div>
       </div>
       <div className="row position-relative" style={{ height: "90vh" }}>
         <div className="col-12">
+          <div className="d-flex justify-content-between mb-3">
+            <button className="btn btn-secondary" onClick={undo}>
+              Undo
+            </button>
+            <button className="btn btn-success" onClick={addNode}>
+              Add Node
+            </button>
+            <button className="btn btn-primary" onClick={exportToImage}>
+              Export as PNG
+            </button>
+          </div>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -96,16 +95,9 @@ const Flowchart: React.FC = () => {
             onConnect={onConnect}
             fitView
           >
-            <Background variant="dots" /> {/* Updated Background variant */}
+            <Background variant="dots" /> {/* Corrected variant */}
             <Controls />
           </ReactFlow>
-          <button
-            onClick={exportToImage}
-            className="btn btn-primary position-absolute"
-            style={{ right: "20px", top: "20px" }}
-          >
-            Export as PNG
-          </button>
         </div>
       </div>
     </div>
@@ -113,4 +105,3 @@ const Flowchart: React.FC = () => {
 };
 
 export default Flowchart;
-
