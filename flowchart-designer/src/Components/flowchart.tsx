@@ -8,6 +8,7 @@ import ReactFlow, {
   Connection,
   Edge,
   Node,
+  useReactFlow,
 } from "react-flow-renderer";
 import { saveAs } from "file-saver";
 
@@ -29,21 +30,39 @@ const Flowchart: React.FC = () => {
 
   const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
 
+  const { fitView, toObject, getNodes, getEdges } = useReactFlow(); // useReactFlow hook
+
   // Handle new connections
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges]
   );
 
-  // Export canvas as an image
+  // Export canvas as an image (corrected export logic)
   const exportToImage = useCallback(() => {
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      canvas.toBlob((blob) => {
-        if (blob) saveAs(blob, "flowchart.png");
-      });
+    const flow = toObject(); // Get current flow as an object
+    const svg = flow.svg; // Get the SVG of the flow
+
+    const svgBlob = new Blob([svg], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(svgBlob);
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (context) {
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        context.drawImage(img, 0, 0);
+
+        canvas.toBlob((blob) => {
+          if (blob) saveAs(blob, "flowchart.png");
+        });
+      };
+      img.src = url;
     }
-  }, []);
+  }, [toObject]);
 
   // Undo functionality
   const undo = useCallback(() => {
@@ -95,7 +114,7 @@ const Flowchart: React.FC = () => {
             onConnect={onConnect}
             fitView
           >
-            <Background variant="dots" /> {/* Corrected variant */}
+            <Background variant="dots" />
             <Controls />
           </ReactFlow>
         </div>
@@ -105,3 +124,5 @@ const Flowchart: React.FC = () => {
 };
 
 export default Flowchart;
+
+
