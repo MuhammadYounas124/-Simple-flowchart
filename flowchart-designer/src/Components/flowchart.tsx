@@ -1,3 +1,4 @@
+import 'admin-lte/dist/css/adminlte.min.css';
 import React, { useState, useCallback } from "react"; // A React hook to manage state in functional components.
 // useCallback: A React hook to memoize functions and avoid unnecessary re-creation of functions during re-renders.
 import ReactFlow, {
