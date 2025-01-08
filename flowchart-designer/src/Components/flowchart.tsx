@@ -1,14 +1,17 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react"; // A React hook to manage state in functional components.
+// useCallback: A React hook to memoize functions and avoid unnecessary re-creation of functions during re-renders.
 import ReactFlow, {
-  addEdge,
-  Background,
-  Controls,
-  useEdgesState,
+  addEdge, // A utility function to add edges between nodes.
+  Background, // Background: Adds a visual background (e.g., grid or lines) to the flowchart.
+  Controls, // Controls: Provides zoom and pan controls for the flowchart.
+  useEdgesState, // useEdgesState and useNodesState: React hooks to manage state for edges and nodes.
   useNodesState,
   Connection,
   Edge,
   Node,
 } from "react-flow-renderer";
+// The react-flow-renderer library is used to create interactive flowcharts. 
+// It provides components and utilities to handle nodes, edges, and their interactions.
 import { saveAs } from "file-saver";
 
 // Initial nodes and edges
