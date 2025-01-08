@@ -1,19 +1,16 @@
-import 'admin-lte/dist/css/adminlte.min.css';
-import React, { useState, useCallback } from "react"; // A React hook to manage state in functional components.
-// useCallback: A React hook to memoize functions and avoid unnecessary re-creation of functions during re-renders.
+import React, { useState, useCallback } from "react";
 import ReactFlow, {
-  addEdge, // A utility function to add edges between nodes.
-  Background, // Background: Adds a visual background (e.g., grid or lines) to the flowchart.
-  Controls, // Controls: Provides zoom and pan controls for the flowchart.
-  useEdgesState, // useEdgesState and useNodesState: React hooks to manage state for edges and nodes.
+  addEdge,
+  Background,
+  Controls,
+  useEdgesState,
   useNodesState,
   Connection,
   Edge,
   Node,
 } from "react-flow-renderer";
-// The react-flow-renderer library is used to create interactive flowcharts. 
-// It provides components and utilities to handle nodes, edges, and their interactions.
 import { saveAs } from "file-saver";
+import "admin-lte/dist/css/adminlte.min.css"; // AdminLTE styles
 
 // Initial nodes and edges
 const initialNodes: Node[] = [
@@ -47,12 +44,10 @@ const Flowchart: React.FC = () => {
   // Undo the last action
   const undo = useCallback(() => {
     if (history.length > 0) {
-      const lastState = history.pop();
-      if (lastState) {
-        setNodes(lastState.nodes);
-        setEdges(lastState.edges);
-        setHistory([...history]);
-      }
+      const lastState = history[history.length - 1];
+      setNodes(lastState.nodes);
+      setEdges(lastState.edges);
+      setHistory((prev) => prev.slice(0, prev.length - 1));
     }
   }, [history]);
 
@@ -94,7 +89,7 @@ const Flowchart: React.FC = () => {
         onConnect={onConnect}
         fitView
       >
-        <Background variant="lines" /> {/* Replaced "dots" with "lines" */}
+        <Background variant="lines" />
         <Controls />
       </ReactFlow>
     </div>
@@ -102,3 +97,4 @@ const Flowchart: React.FC = () => {
 };
 
 export default Flowchart;
+
